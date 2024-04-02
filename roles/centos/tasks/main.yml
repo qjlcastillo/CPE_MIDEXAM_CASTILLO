@@ -1,0 +1,177 @@
+---
+
+  - name: Install necessary prerequisites
+    dnf:
+      name:
+        - java-1.8.0-openjdk
+        - epel-release
+        - wget
+        - which
+      state: present
+    become: yes
+
+  - name: Add Elasticsearch RPM repository GPG key
+    shell: rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+
+  - name: Add the Elasticsearch YUM repository
+    copy:
+      content: |
+        [elasticsearch-7.x]
+        name=Elasticsearch repository for 7.x packages
+        baseurl=https://artifacts.elastic.co/packages/7.x/yum
+        gpgcheck=1
+        gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+        enabled=1
+        autorefresh=1
+        type=rpm-md
+      dest: /etc/yum.repos.d/elasticsearch.repo
+    become: yes
+
+  - name: Install Elasticsearch
+    dnf:
+      name: elasticsearch
+      state: present
+    become: yes
+
+  - name: Enable and start Elasticsearch service
+    systemd:
+      name: elasticsearch
+      enabled: yes
+      state: started
+    become: yes
+
+  - name: Install Kibana
+    dnf:
+      name: kibana
+      state: present
+    become: yes
+
+  - name: Enable and start Kibana service
+    systemd:
+      name: kibana
+      enabled: yes
+      state: started
+    become: yes
+
+  - name: Install Logstash
+    dnf:
+      name: logstash
+      state: present
+    become: yes
+
+  - name: Enable and start Logstash service
+    systemd:
+      name: logstash
+      enabled: yes
+      state: started
+    become: yes
+
+  - name: Restart Elasticsearch and Kibana services
+    systemd:
+      name: "{{ item }}"
+      state: restarted
+    loop:
+      - elasticsearch
+      - kibana
+ 
+  - name: Create directory
+    tags: dir
+    file:
+      path: ~/prometheus
+      state: directory
+
+  - name: Download Prometheus
+    unarchive:
+      src: https://github.com/prometheus/prometheus/releases/download/v2.39.1/prometheus-2.39.1.linux-amd64.tar.gz
+      dest: ~/prometheus
+      remote_src: yes
+      mode: 0777
+      owner: root
+      group: root
+
+  - name: Add executables of Prometheus in a path
+    tags: exe
+    shell: |
+      cd ~/prometheus*
+      sudo rsync -av . /usr/local/bin/prometheus/
+
+  - name: Copy Prometheus file
+    tags: file
+    copy:
+      src: prometheus.service
+      dest: /etc/systemd/system/
+      owner: root
+      group: root
+      mode: 777
+
+  - name: Start HTTPD
+    tags: httpd
+    service:
+      name: prometheus
+      state: restarted
+      enabled: true
+
+  - name: Install Apache
+    dnf:
+      name: httpd
+      state: present
+
+  - name: Start Apache service
+    systemd:
+      name: httpd
+      state: started
+      enabled: yes
+
+  - name: Install MariaDB
+    dnf:
+      name: mariadb
+      state: present
+
+  - name: Start MariaDB service
+    systemd:
+      name: mariadb
+      state: started
+      enabled: yes
+
+  - name: Install PHP
+    dnf:
+      name: php
+      state: present
+
+  - name: Restart Apache service
+    systemd:
+      name: httpd
+      state: restarted
+
+  - name: Downloading Grafana package
+    get_url:
+      url: https://dl.grafana.com/enterprise/release/grafana-enterprise-7.5.7-1.x86_64.rpm
+      dest: /tmp/grafana-enterprise-7.5.7-1.x86_64.rpm
+
+  - name: Installing Grafana
+    dnf:
+      name: /tmp/grafana-enterprise-7.5.7-1.x86_64.rpm
+
+  - name: Enabling Grafana service
+    service:
+      name: grafana-server
+      enabled: yes
+
+  - name: Modifying service file
+    tags: es_ubuntu
+    replace:
+      path: /usr/lib/systemd/system/grafana-server.service
+      regexp: "TimeoutStartSec=75"
+      replace: "TimeoutStartSec=500"
+
+  - name: Making sure that Grafana service is started and enabled
+    service:
+      name: grafana-server
+      enabled: true
+      state: started
+
+
+
+
+
+

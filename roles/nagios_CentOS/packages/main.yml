@@ -1,0 +1,18 @@
+---
+
+- name: install Nagios packages (CentOS)
+  dnf:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - nagios
+    - nagios-plugins-all
+  when: "ansible_os_family == 'RedHat'"
+
+- name: Start and enable the Nagios service (CentOS)
+  service:
+    name: nagios
+    state: started
+    enabled: yes
+  when: "ansible_os_family == 'RedHat'"
+

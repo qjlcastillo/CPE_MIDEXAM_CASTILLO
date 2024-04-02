@@ -1,0 +1,60 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  
+  - name: install updates (CentOS)
+    dnf:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "Centos"
+
+  - name: install updates (Ubuntu)
+    apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+  - name: DPKG in Ubuntu Server
+    shell: |
+      dpkg --configure -a
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Update in Ubuntu Server
+    apt:
+      update_cache: yes
+      upgrade: yes
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Install epel-release and dnf
+    dnf:
+      name:
+        - epel-release
+        - dnf
+    when: ansible_distribution == "CentOS"
+
+  - name: Update CentOS Server
+    dnf:
+      update_cache: yes
+      name: "*"
+      state: latest
+    when: ansible_distribution == "CentOS"
+
+
+- hosts: centos
+  become: true
+  roles:
+    - centos
+
+- hosts: ubuntu
+  become: true
+  roles:
+    - ubuntu
+    
+- name: install nagios on CentOS     
+  hosts: nagios_CentOS
+  become: true
+  roles:
+    - nagios_CentOS
+

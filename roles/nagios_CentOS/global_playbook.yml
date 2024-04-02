@@ -1,0 +1,20 @@
+
+---
+
+  - name: Install dnf and epel-release
+    dnf:
+      name:
+        - epel-release
+        - dnf
+    when: ansible_distribution == "CentOS"
+
+  - name: Update and upgrade remote in CentOS server
+    dnf:
+      update_cache: yes
+      name: "*"
+      state: latest
+    when: ansible_distribution == "CentOS"
+
+
+
+
