@@ -171,6 +171,15 @@
       state: started
 
 
+  - name: Adding the executables to the PATH
+    shell: curl -O https://dl.influxdata.com/influxdb/releases/influxdb2-2.7.5-1.x86_64.rpm
+      
+      
+  - name: Install InfluxDB
+    shell: sudo dnf localinstall influxdb2-2.7.5-1.x86_64.rpm
+
+
+
 
 
 

@@ -11,21 +11,7 @@
       update_cache: yes
     when: ansible_distribution == "Centos"
 
-  - name: install updates (Ubuntu)
-    apt:
-      upgrade: dist
-      update_cache: yes
-    when: ansible_distribution == "Ubuntu"
-  - name: DPKG in Ubuntu Server
-    shell: |
-      dpkg --configure -a
-    when: ansible_distribution == "Ubuntu"
 
-  - name: Update in Ubuntu Server
-    apt:
-      update_cache: yes
-      upgrade: yes
-    when: ansible_distribution == "Ubuntu"
 
   - name: Install epel-release and dnf
     dnf:
